@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.10.2/css/all.css" integrity="sha384-rtJEYb85SiYWgfpCr0jn174XgJTn4rptSOQsMroFBPQSGLdOC5IbubP6lJ35qoM9" crossorigin="anonymous">
+</head>
+<body>
+  <div id="app">
+    <nav class="navbar navbar-dark bg-dark">
+      <a class="navbar-brand" href="#">Training Day 2</a>
+    </nav>
+    <hr></hr>
+    <div class="rol-lg-12">
+      <div class="container-fluid">
+        <div class="row flex-xl-nowrap">
+          <div class="col-6 mx-auto col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h5>Add Product</h5>
+              </div>
+              <div class="card-body">
+                <form @submit.prevent="add">
+                  <p v-if="alerts.length">
+                    <div v-for="alert in alerts" class="alert alert-success" role="alert">
+                        {{ alert }}
+                    </div>
+                  </p>
+                  <div class="form-group">
+                    <label for="">Nama Barang</label>
+                    <input type="text" v-model="form.name" class="form-control">
+                    <div v-if="errors.name" class="alert alert-danger" role="alert">
+                        {{ errors.name }}
+                    </div> 
+                  </div>
+                  <div class="form-group">
+                    <label for="">Harga Barang</label>
+                    <div class="input-group">
+                      <div class="input-group-prepend">
+                        <div class="input-group-text" id="btnGroupAddon">Rp</div>
+                      </div>
+                      <input type="number" v-model="form.price" class="form-control">
+                      <div v-if="errors.price" class="alert alert-danger" role="alert">
+                          {{ errors.price }}
+                      </div>
+                    </div>
+                  </div>
+                  <button type="submit" v-show="!updateSubmit" class="btn btn-info">+ add</button>  
+                  <button type="button" v-show="updateSubmit" @click="update(form)" class="btn btn-info">> Update</button> 
+                </form>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>List Product</h5>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive-md">
+                    <div class="form-group">
+                      <div class="input-group">
+                        <input type="text" v-model="searchParams" class="form-control">
+                        <div class="input-group-prepend">
+                          <button 
+                            class="btn btn-secondary">Search
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <table class="table table-dark">
+                      <thead>
+                        <tr>
+                          <th>No</th>
+                          <th @click="sort('name')">Nama Barang</th>
+                          <th @click="sort('price')">Harga</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tr v-for='(item, index) in sortedItems' :key="item.id">
+                        <td>{{++index}}</td>
+                        <td>{{item.name}}</td>
+                        <td>Rp. {{item.price}}</td>
+                        <td><button 
+                              @click="remove(item)" 
+                              class="btn btn-danger"><i class="fas fa-trash"></i>
+                            </button>
+                            <button 
+                              @click="edit(item)" 
+                              class="btn btn-secondary"><i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                      </tr>
+                      <tr class="bg-info">
+                        <td></td>
+                        <td>Total</td>
+                        <td>Rp. {{ total }}</td>
+                        <td></td>
+                      </tr>
+                    </table>
+                    <p>
+                      <button @click="prevPage" class="btn btn-info">Previous</button> 
+                      <button @click="nextPage" class="btn btn-info">Next</button>
+                    </p>
+                  </div>
+                </div>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+  <script src="https://kit.fontawesome.com/152fd35e35.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data(){
+        return {
+          errors: {},
+          alerts: [],
+          name: '',
+          price: '',
+          currentSort: 'name',
+          currentSortDir:'asc',
+          pageSize: 5,
+          currentPage: 1,
+          searchParams: '',
+          showModal:false,
+          items: [
+            { id: 1, name: 'Watermelon', price: 1500},
+            { id: 2, name: 'Pineapple', price: 3500},
+            { id: 3, name: 'Pop Mie Rebus', price: 4500},
+            { id: 4, name: 'Apple', price: 5500},
+            { id: 5, name: 'Orange', price: 6500},
+            { id: 6, name: 'Pear', price: 7500},
+            { id: 7, name: 'Mango', price: 7500}
+          ],
+          updateSubmit: false,
+          form: {
+            id: '',
+            name: '',
+            price: ''
+          }
+        }
+      },
+      methods: {
+        add(){
+          this.errors = {};
+          this.alerts = [];
+          if(!this.form.name) this.errors.name = "Nama Barang dibutuhkan."
+          if(this.form.price <= 0) this.errors.price = "Harga Barang harus valid"
+
+          if(Object.values(this.errors).length > 0) return
+
+          this.items.push({
+            id: Date.now(),
+            name: this.form.name,
+            price: this.form.price
+          })
+
+          this.form.name  = ''
+          this.form.price = ''
+          this.alerts.push("Data Tersimpan")
+        },
+        remove(item){
+          const index = this.items.indexOf(item)
+          this.items.splice(index, 1)
+        },
+        sort(s) {
+          if(s === this.currentSort) {
+            this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
+          }
+          this.currentSort = s;
+        },
+        nextPage() {
+          if((this.currentPage*this.pageSize) < this.items.length) this.currentPage++;
+        },
+        prevPage() {
+          if(this.currentPage > 1) this.currentPage--;
+        },
+        edit(item){ 
+          console.log('edit')
+          this.updateSubmit = true
+          this.form.id = item.id 
+          this.form.name = item.name 
+          this.form.price = item.price
+        },
+        update(form){ 
+          const selectedItems = this.items.filter(item => item.id == form.id)
+          const selectedItem = selectedItems[0]
+          selectedItem.name = form.name
+          selectedItem.price = form.price
+
+          this.form.name  = ''
+          this.form.price = ''
+          this.alerts.push("Data Update")
+        }
+      },
+      computed: {
+        total(){
+          return this.sortedItems
+                     .map(item => Number(item.price))
+                     .reduce((prev, current) => prev + current, 0)
+        },
+        sortedItems() {
+          return this.items.filter(item => {
+            const nameItem  = item.name.toLowerCase().includes(this.searchParams.toLowerCase())
+            const priceItem = this.searchParams.match(item.price)
+            return nameItem || priceItem
+            // return true;
+          }).sort((a,b) => {
+            let modifier = 1;
+            if(this.currentSortDir === 'desc') modifier = -1;
+            if(a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+            if(a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+            return 0;
+          }).filter((row, index) => {
+            let start = (this.currentPage-1)*this.pageSize;
+            let end = this.currentPage*this.pageSize;
+            if(index >= start && index < end) return true;
+          })
+        }
+      }
+
+    });
+
+  </script>
+</body>
+</html>
