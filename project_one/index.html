@@ -212,7 +212,7 @@
         sortedItems() {
           return this.items.filter(item => {
             const nameItem  = item.name.toLowerCase().includes(this.searchParams.toLowerCase())
-            const priceItem = this.searchParams.match(item.price)
+            const priceItem = String(item.price).toLowerCase().includes(this.searchParams.toLowerCase())
             return nameItem || priceItem
             // return true;
           }).sort((a,b) => {
