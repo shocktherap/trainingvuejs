@@ -43,9 +43,9 @@
                         <div class="input-group-text" id="btnGroupAddon">Rp</div>
                       </div>
                       <input type="number" v-model="form.price" class="form-control">
-                      <div v-if="errors.price" class="alert alert-danger" role="alert">
-                          {{ errors.price }}
-                      </div>
+                    </div>
+                    <div v-if="errors.price" class="alert alert-danger" role="alert">
+                        {{ errors.price }}
                     </div>
                   </div>
                   <button type="submit" v-show="!updateSubmit" class="btn btn-info">+ add</button>  
